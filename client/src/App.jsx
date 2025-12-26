@@ -17,6 +17,9 @@ function Home() {
         <button className="btn-primary" onClick={() => navigate('/host')}>Host Game</button>
         <button className="btn-primary" style={{ background: 'var(--bg-secondary)' }} onClick={() => navigate('/player')}>Join Game</button>
       </div>
+      <div style={{ position: 'fixed', bottom: '10px', right: '10px', fontSize: '0.8rem', opacity: 0.5 }}>
+        Server: {import.meta.env.VITE_API_URL ? new URL(import.meta.env.VITE_API_URL).hostname : 'Localhost'}
+      </div>
     </div>
   );
 }
