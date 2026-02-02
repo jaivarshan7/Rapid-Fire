@@ -32,6 +32,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/host/*" element={<HostRoutes />} />
           <Route path="/player/*" element={<PlayerRoutes />} />
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </BrowserRouter>
     </SocketContext.Provider>
@@ -44,6 +45,7 @@ import HostGame from './components/HostGame';
 import PlayerJoin from './components/PlayerJoin';
 import PlayerGame from './components/PlayerGame';
 import HostLogin from './components/HostLogin';
+import AdminPanel from './components/AdminPanel';
 
 const HostRoutes = () => (
   <Routes>

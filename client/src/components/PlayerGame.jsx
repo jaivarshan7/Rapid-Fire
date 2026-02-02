@@ -100,7 +100,7 @@ export default function PlayerGame() {
         return (
             <div className="fullscreen-center animate-fade-in">
                 <h1>Game Over</h1>
-                <p>Final Score: {score}</p>
+                <p>Thank you for playing!</p>
                 <button className="btn-primary" onClick={() => navigate('/')}>Exit</button>
             </div>
         );

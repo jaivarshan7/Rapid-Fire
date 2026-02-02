@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { SocketContext } from '../App';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 export default function HostLobby() {
     const socket = useContext(SocketContext);
@@ -37,39 +38,38 @@ export default function HostLobby() {
         };
     }, [socket, navigate]);
 
-    const handleStartGame = () => {
-        // For MVP, using a hardcoded set of questions
-        // In a real app, you'd select a quiz deck here
-        const questions = [
-            {
-                id: 1,
-                text: "What is the capital of France?",
-                options: ["Berlin", "Madrid", "Paris", "Rome"],
-                correctAnswer: 2,
-                time: 20
-            },
-            {
-                id: 2,
-                text: "Which planet is known as the Red Planet?",
-                options: ["Earth", "Mars", "Jupiter", "Venus"],
-                correctAnswer: 1,
-                time: 20
-            },
-            {
-                id: 3,
-                text: "What is 2 + 2?",
-                options: ["3", "4", "5", "22"],
-                correctAnswer: 1,
-                time: 10
-            }
-        ];
+    const handleStartGame = async () => {
+        // Fetch questions from Supabase
+        const { data: dbQuestions, error } = await supabase
+            .from('questions')
+            .select('*')
+            .order('created_at', { ascending: true }); // Optional: order by creation or random
+
+        if (error) {
+            console.error('Error fetching questions:', error);
+            alert('Failed to load questions. Check console.');
+            return;
+        }
+
+        if (!dbQuestions || dbQuestions.length === 0) {
+            alert('No questions available! Add some in the Admin Panel.');
+            return;
+        }
+
+        const questions = dbQuestions.map(q => ({
+            id: q.id,
+            text: q.text,
+            options: q.options,
+            correctAnswer: q.correct_answer,
+            time: q.time_limit
+        }));
 
         socket.emit('start_game', { pin, questions });
     };
 
     return (
         <div className="lobby-screen animate-fade-in">
-            <h2>Join at <span style={{ color: 'var(--accent-color)' }}>rapid-fire.game</span></h2>
+            <h2>Join at <span style={{ color: 'var(--accent-color)' }}>rapid-fire-six.vercel.app</span></h2>
             <p>Game PIN:</p>
             <div className="pin-display">{pin || '...'}</div>
 

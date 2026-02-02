@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { SocketContext } from '../App';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const SHAPES = ['red', 'blue', 'yellow', 'green'];
 const ICONS = ['▲', '◆', '●', '■'];
@@ -62,9 +63,21 @@ export default function HostGame() {
             setGameState('LEADERBOARD');
         });
 
-        socket.on('game_over', (finalLb) => {
+        socket.on('game_over', async (finalLb) => {
             setLeaderboard(finalLb);
             setGameState('GAMEOVER');
+
+            // Save scores to Supabase
+            const scoresToSave = finalLb.map(p => ({
+                player_name: p.name,
+                score: p.score
+            }));
+
+            if (scoresToSave.length > 0) {
+                const { error } = await supabase.from('scores').insert(scoresToSave);
+                if (error) console.error('Error saving scores to Supabase:', error);
+                else console.log('Scores saved to Supabase');
+            }
         });
 
         return () => {
@@ -83,8 +96,7 @@ export default function HostGame() {
 
     const handleNext = () => {
         if (gameState === 'RESULTS') {
-            socket.emit('host_show_leaderboard', { pin });
-        } else if (gameState === 'LEADERBOARD') {
+            // Skip Leaderboard: Go directly to next question
             socket.emit('host_next_question', { pin });
         }
     };
@@ -93,19 +105,9 @@ export default function HostGame() {
         return (
             <div className="fullscreen-center animate-fade-in">
                 <h1>Game Over</h1>
-                <div className="card" style={{ width: '600px' }}>
-                    {leaderboard.map((p, i) => (
-                        <div key={p.id} style={{
-                            display: 'flex', justifyContent: 'space-between',
-                            padding: '1rem', borderBottom: '1px solid #333',
-                            fontSize: i === 0 ? '1.5rem' : '1rem',
-                            fontWeight: i === 0 ? 'bold' : 'normal',
-                            color: i === 0 ? 'var(--accent-color)' : 'white'
-                        }}>
-                            <span>#{i + 1} {p.name}</span>
-                            <span>{p.score} pts</span>
-                        </div>
-                    ))}
+                <p>Top scores have been recorded.</p>
+                <div className="card" style={{ width: '600px', display: 'none' }}>
+                    {/* Leaderboard Hidden */}
                 </div>
                 <button className="btn-primary" style={{ marginTop: '2rem' }} onClick={() => navigate('/')}>Back to Home</button>
             </div>
