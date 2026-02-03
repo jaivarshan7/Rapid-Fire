@@ -64,12 +64,17 @@ export default function AdminPanel() {
         if (!error) fetchData();
     };
 
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/');
+    };
+
     return (
         <div className="fullscreen-center" style={{ justifyContent: 'flex-start', paddingTop: '2rem', overflowY: 'auto' }}>
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
                 <button className={`btn-primary ${tab === 'questions' ? '' : 'secondary'}`} onClick={() => setTab('questions')}>Questions</button>
                 <button className={`btn-primary ${tab === 'scores' ? '' : 'secondary'}`} onClick={() => setTab('scores')}>Scores</button>
-                <button className="btn-primary secondary" onClick={() => navigate('/')}>Exit</button>
+                <button className="btn-primary secondary" onClick={handleLogout}>Logout</button>
             </div>
 
             {loading ? <p>Loading...</p> : (

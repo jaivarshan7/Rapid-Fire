@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { SocketContext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import QRCode from 'react-qr-code';
 
 export default function HostLobby() {
     const socket = useContext(SocketContext);
@@ -70,6 +71,9 @@ export default function HostLobby() {
     return (
         <div className="lobby-screen animate-fade-in">
             <h2>Join at <span style={{ color: 'var(--accent-color)' }}>rapid-fire-six.vercel.app</span></h2>
+            <div style={{ background: 'white', padding: '1rem', borderRadius: '1rem', margin: '1rem auto', width: 'fit-content' }}>
+                <QRCode value="https://rapid-fire-six.vercel.app/" size={128} />
+            </div>
             <p>Game PIN:</p>
             <div className="pin-display">{pin || '...'}</div>
 

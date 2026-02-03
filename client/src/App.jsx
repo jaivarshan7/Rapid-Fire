@@ -8,10 +8,42 @@ export const SocketContext = createContext();
 
 const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000'); // Use env var for prod, localhost for dev
 
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+const RequireAuth = ({ children }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Simple check, render nothing while redirecting
+  React.useEffect(() => {
+    if (!user) navigate('/host');
+  }, [user, navigate]);
+
+  return user ? children : null;
+};
+
 function Home() {
   const navigate = useNavigate();
   return (
     <div className="lobby-screen animate-fade-in">
+      {/* Hidden Admin Button */}
+      <button
+        onClick={() => navigate('/admin')}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          border: 'none',
+          color: 'rgba(255, 255, 255, 0.5)',
+          padding: '0.5rem 1rem',
+          cursor: 'pointer',
+          borderRadius: '5px'
+        }}
+      >
+        Admin
+      </button>
+
       <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>Rapid Fire</h1>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <button className="btn-primary" onClick={() => navigate('/host')}>Host Game</button>
@@ -26,16 +58,22 @@ function Home() {
 
 function App() {
   return (
-    <SocketContext.Provider value={socket}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/host/*" element={<HostRoutes />} />
-          <Route path="/player/*" element={<PlayerRoutes />} />
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </BrowserRouter>
-    </SocketContext.Provider>
+    <AuthProvider>
+      <SocketContext.Provider value={socket}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/host/*" element={<HostRoutes />} />
+            <Route path="/player/*" element={<PlayerRoutes />} />
+            <Route path="/admin" element={
+              <RequireAuth>
+                <AdminPanel />
+              </RequireAuth>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </SocketContext.Provider>
+    </AuthProvider>
   );
 }
 
@@ -50,8 +88,16 @@ import AdminPanel from './components/AdminPanel';
 const HostRoutes = () => (
   <Routes>
     <Route path="/" element={<HostLogin />} />
-    <Route path="/lobby" element={<HostLobby />} />
-    <Route path="/game" element={<HostGame />} />
+    <Route path="/lobby" element={
+      <RequireAuth>
+        <HostLobby />
+      </RequireAuth>
+    } />
+    <Route path="/game" element={
+      <RequireAuth>
+        <HostGame />
+      </RequireAuth>
+    } />
   </Routes>
 );
 

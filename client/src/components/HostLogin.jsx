@@ -1,33 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 export default function HostLogin() {
     const navigate = useNavigate();
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-            const res = await fetch(`${API_URL}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
 
-            if (data.success) {
-                // In a real app, store token in localStorage/Context
-                navigate('/host/lobby');
-            } else {
-                setError(data.message || 'Login failed');
-            }
-        } catch (err) {
-            setError('Connection refused');
+        if (error) {
+            setError(error.message);
+            setLoading(false);
+        } else {
+            navigate('/host/lobby');
         }
     };
 
@@ -36,14 +32,14 @@ export default function HostLogin() {
             <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Host Login</h2>
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
                     {error && <div style={{ color: 'var(--error)', textAlign: 'center' }}>{error}</div>}
-
                     <input
                         className="input-field"
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
                     />
                     <input
                         className="input-field"
@@ -51,9 +47,14 @@ export default function HostLogin() {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     />
-                    <button className="btn-primary" type="submit">Login</button>
-                    <button className="btn-primary" type="button" style={{ background: 'transparent', border: '1px solid #333' }} onClick={() => navigate('/')}>Cancel</button>
+                    <button className="btn-primary" type="submit" disabled={loading}>
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
+                    <button className="btn-primary" type="button" style={{ background: 'transparent', border: '1px solid #333' }} onClick={() => navigate('/')}>
+                        Cancel
+                    </button>
                 </form>
             </div>
         </div>
