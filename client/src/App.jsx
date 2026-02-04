@@ -10,14 +10,14 @@ const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000'); // U
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-const RequireAuth = ({ children }) => {
+const RequireAuth = ({ children, redirectTo = '/host' }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // Simple check, render nothing while redirecting
   React.useEffect(() => {
-    if (!user) navigate('/host');
-  }, [user, navigate]);
+    if (!user) navigate(redirectTo);
+  }, [user, navigate, redirectTo]);
 
   return user ? children : null;
 };
@@ -63,10 +63,11 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/host/*" element={<HostRoutes />} />
             <Route path="/player/*" element={<PlayerRoutes />} />
             <Route path="/admin" element={
-              <RequireAuth>
+              <RequireAuth redirectTo="/admin-login">
                 <AdminPanel />
               </RequireAuth>
             } />
@@ -83,6 +84,7 @@ import HostGame from './components/HostGame';
 import PlayerJoin from './components/PlayerJoin';
 import PlayerGame from './components/PlayerGame';
 import HostLogin from './components/HostLogin';
+import AdminLogin from './components/AdminLogin';
 import AdminPanel from './components/AdminPanel';
 
 const HostRoutes = () => (
